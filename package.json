@@ -1,0 +1,9 @@
+{
+  "name": "satanist-twitter",
+  "version": "1.0.0",
+  "description": "delete the last tweet on a timeline when number of tweets reaches above 666",
+  "author": "zonika",
+  "dependencies": {
+    "twitter": "^1.2.5"
+  }
+}
