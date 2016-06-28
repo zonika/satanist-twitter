@@ -26,7 +26,6 @@ SatanistTwitter.prototype = {
   startStream: function() {
     var vm = this;
     vm.client.stream('statuses/filter', {'follow': userId}, function(stream) {
-      console.log('stream started!');
       vm.stream = stream;
       stream.on('data', function(tweet) {
         console.log('I got something!');
@@ -92,6 +91,7 @@ SatanistTwitter.prototype = {
     }, 300000);
   },
   error: function(error) {
+    console.log('im here :(');
     console.error(error);
     process.exit();
   }
