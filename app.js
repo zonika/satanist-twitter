@@ -12,7 +12,7 @@ var config = {
     jsonfile = require('jsonfile'),
     userId = config.userId;
 console.log(config);
-console.log(process.env);
+console.log(process);
 function SatanistTwitter(configs) {
   this.client = new Twitter(configs);
 }
