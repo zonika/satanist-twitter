@@ -2,8 +2,17 @@
   "name": "satanist-twitter",
   "version": "1.0.0",
   "description": "delete the last tweet on a timeline when number of tweets reaches above 666",
+  "scripts": {
+    "start": "node app"
+  },
   "author": "zonika",
+  "license": "SMD",
+  "repository": {
+    "url": "github.com/zonika/satanist-twitter"
+  },
   "dependencies": {
+    "bluebird": "^3.4.1",
+    "jsonfile": "^2.3.1",
     "twitter": "^1.2.5"
   }
 }
