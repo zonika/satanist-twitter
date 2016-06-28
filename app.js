@@ -11,7 +11,7 @@ var config = {
     Promise = require('bluebird'),
     jsonfile = require('jsonfile'),
     userId = config.userId;
-console.log(config);
+
 function SatanistTwitter(configs) {
   this.client = new Twitter(configs);
 }
@@ -26,8 +26,10 @@ SatanistTwitter.prototype = {
   startStream: function() {
     var vm = this;
     vm.client.stream('statuses/filter', {'follow': userId}, function(stream) {
+      console.log('stream started!');
       vm.stream = stream;
       stream.on('data', function(tweet) {
+        console.log('I got something!');
         if (!tweet.user) return;
         if (tweet.user.statuses_count > 666) {
           vm.getTweetsAsync(vm.tweetParams).then(vm.getLastTweetId)
