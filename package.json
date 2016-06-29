@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "delete the last tweet on a timeline when number of tweets reaches above 666",
   "scripts": {
-    "start": "node server"
+    "start": "node app"
   },
   "author": "zonika",
   "license": "SMD",

@@ -10,6 +10,7 @@ var config = {
     Twitter = require('twitter'),
     Promise = require('bluebird'),
     jsonfile = require('jsonfile'),
+    express = require('express'),
     userId = config.userId;
 
 function SatanistTwitter(configs) {
@@ -97,5 +98,14 @@ SatanistTwitter.prototype = {
   }
 };
 
-var satanistTwitter = new SatanistTwitter(config.api);
-satanistTwitter.startStream();
+var app = express(),
+    port = process.env.PORT || 8008;
+
+app.get('/', function(req, res) {
+  res.send(':)');
+});
+
+app.listen(port, function() {
+  var satanistTwitter = new SatinistTwitter(config.api);
+  satanistTwitter.startStream();
+});
