@@ -102,7 +102,7 @@ var app = express(),
     port = process.env.PORT || 8008;
 
 app.get('/', function(req, res) {
-  res.send(':)');
+  res.send('you\'re obviously in the wrong place');
 });
 
 app.listen(port, function() {
