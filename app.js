@@ -106,6 +106,6 @@ app.get('/', function(req, res) {
 });
 
 app.listen(port, function() {
-  var satanistTwitter = new SatinistTwitter(config.api);
+  var satanistTwitter = new SatanistTwitter(config.api);
   satanistTwitter.startStream();
 });
