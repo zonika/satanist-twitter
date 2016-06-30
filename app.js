@@ -32,6 +32,7 @@ SatanistTwitter.prototype = {
         console.log('I got something!');
         if (!tweet.user) return;
         if (tweet.user.statuses_count > 666) {
+          console.log(tweer.text);
           vm.getTweetsAsync(vm.tweetParams).then(vm.getLastTweetId)
         }
       });
