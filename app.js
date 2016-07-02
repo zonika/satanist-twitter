@@ -1,4 +1,5 @@
-var config = {
+var config = require('./config.json'),
+/*{
   'userId': process.env.USER_ID,
   'api': {
     'consumer_key': process.env.CONSUMER_KEY,
@@ -6,7 +7,7 @@ var config = {
     'access_token_key': process.env.ACCESS_TOKEN_KEY,
     'access_token_secret': process.env.ACCESS_TOKEN_SECRET
   }
-},
+}*/
     Twitter = require('twitter'),
     Promise = require('bluebird'),
     jsonfile = require('jsonfile'),
@@ -33,6 +34,7 @@ SatanistTwitter.prototype = {
         if (!tweet.user) return;
         console.log(tweet.text);
         if (tweet.user.statuses_count > 666) {
+          vm.tweetParams.max_id = undefined;
           vm.getTweetsAsync(vm.tweetParams).then(vm.getLastTweetId)
         }
       });
