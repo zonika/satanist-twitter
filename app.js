@@ -65,6 +65,6 @@ app.get('/', (req, res) => {
   res.send('you\'re obviously in the wrong place');
 });
 
-app.listen(8008, function() {
+app.listen(process.env.PORT, function() {
   startStream();
 });
