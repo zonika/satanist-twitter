@@ -26,7 +26,7 @@ function startStream() {
   const stream = client.stream('statuses/filter', { follow: userId });
 
   stream.on('data', (event) => {
-    if (event.user.id === userId && event.user.statuses_count > 666) {
+    if (event.user.id_str === userId && event.user.statuses_count > 666) {
       getOldest().then(deleteOldest);
     }
   });
