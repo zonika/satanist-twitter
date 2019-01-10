@@ -27,24 +27,6 @@ function getCRCHash(token, secret) {
   return crypto.createHmac('sha256', secret).update(token).digest('base64');
 }
 
-function startStream() {
-  const stream = client.stream('statuses/filter', { follow: userId });
-
-  stream.on('data', (event) => {
-    if (event.user.id_str === userId && event.user.statuses_count > maxTweets) {
-      getOldest().then(deleteOldest);
-    }
-  });
-
-  stream.on('end', resurrect);
-
-  stream.on('error', (err) => {
-    throw err;
-
-    process.exit();
-  });
-}
-
 function getOldest(maxId) {
   const params = maxId ? Object.assign({}, getParams, { max_id: maxId }) : Object.assign({}, getParams);
 
