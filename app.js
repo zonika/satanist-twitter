@@ -70,10 +70,11 @@ app.get('/webhook/twitter', (req, res) => {
 app.post('/webhook/twitter', (req, res) => {
   if (req.body.for_user_id === userId && req.body.tweet_create_events) {
     const user = req.body.tweet_create_events[0].user;
+    console.log(user);
 
-    if (user.statuses_count > maxTweets) {
-      getOldest().then(deleteOldest);
-    }
+    //if (user.statuses_count > maxTweets) {
+      //getOldest().then(deleteOldest);
+    //}
   }
 
   res.send('yeehaw');
