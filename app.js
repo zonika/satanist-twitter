@@ -54,8 +54,7 @@ app.get('/', (req, res) => {
 app.get('/webhook/twitter', (req, res) => {
   const token = req.query.crc_token;
 
-  console.log(token);
-
+  console.log('token' + token);
   if (token) {
     const hash = getCRCHash(token, process.env.CONSUMER_SECRET);
 
