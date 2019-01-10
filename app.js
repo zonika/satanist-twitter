@@ -31,7 +31,7 @@ function startStream() {
   const stream = client.stream('statuses/filter', { follow: userId });
 
   stream.on('data', (event) => {
-    if (event.user.id_str === userId && event.user.statuses_count > 666) {
+    if (event.user.id_str === userId && event.user.statuses_count > maxTweets) {
       getOldest().then(deleteOldest);
     }
   });
@@ -89,7 +89,7 @@ app.post('/webhook/twitter', (req, res) => {
   if (req.body.for_user_id === userId && req.body.tweet_create_events) {
     const user = req.body.tweet_create_events[0].user;
 
-    if (user.statuses_count > 666) {
+    if (user.statuses_count > maxTweets) {
       getOldest().then(deleteOldest);
     }
   }

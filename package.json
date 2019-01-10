@@ -1,7 +1,7 @@
 {
   "name": "satanist-twitter",
-  "version": "2.0.0",
-  "description": "delete the last tweet on a timeline when number of tweets reaches above 666",
+  "version": "3.0.0",
+  "description": "delete the last tweet on a timeline when number of tweets reaches above a given number",
   "scripts": {
     "start": "node app"
   },
