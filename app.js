@@ -3,10 +3,11 @@
 require('dotenv').config();
 
 const twitter = require('twitter'),
-  bluebird = require('bluebird'),
   express = require('express'),
-  _ = require('lodash'),
+  crypto = require('crypto'),
+  bodyParser = require('body-parser'),
   userId = process.env.USER_ID,
+  maxTweets = process.env.MAX_TWEETS || 666,
   config = {
     consumer_key: process.env.CONSUMER_KEY,
     consumer_secret: process.env.CONSUMER_SECRET,
@@ -21,6 +22,10 @@ const twitter = require('twitter'),
   },
   client = new twitter(config),
   app = express();
+
+function getCRCHash(token, secret) {
+  return crypto.createHmac('sha256', secret).update(token).digest('base64');
+}
 
 function startStream() {
   const stream = client.stream('statuses/filter', { follow: userId });
@@ -45,26 +50,51 @@ function getOldest(maxId) {
 
   return client.get('statuses/user_timeline', params).then((response) => {
     if (response.length < 200) {
-      return _.last(response);
+      return response.pop();
     } else {
-      return getOldest(_.last(response).id);
+      return getOldest(response.pop().id);
     }
   });
 }
 
 function deleteOldest(tweet) {
   console.log('deleting ' + tweet.text);
-  client.post('statuses/destroy', { id: tweet.id_str });
+  return client.post('statuses/destroy', { id: tweet.id_str });
 }
 
-function resurrect() {
-  setTimeout(() => (startStream()), 30000);
-}
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.get('/', (req, res) => {
   res.send('you\'re obviously in the wrong place');
 });
 
-app.listen(process.env.PORT, function() {
-  startStream();
+app.get('/webhook/twitter', (req, res) => {
+  const token = req.query.crc_token;
+
+  if (token) {
+    const hash = getCRCHash(token, process.env.CONSUMER_SECRET);
+
+    res.status(200);
+    res.send({
+      response_token: `sha256=${hash}`
+    });
+  } else {
+    res.status(400);
+    res.send('no crc_token :(');
+  }
 });
+
+app.post('/webhook/twitter', (req, res) => {
+  if (req.body.for_user_id === userId && req.body.tweet_create_events) {
+    const user = req.body.tweet_create_events[0].user;
+
+    if (user.statuses_count > 666) {
+      getOldest().then(deleteOldest);
+    }
+  }
+
+  res.send('yeehaw');
+});
+
+app.listen(process.env.PORT);
