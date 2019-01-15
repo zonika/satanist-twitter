@@ -6,6 +6,7 @@ const twitter = require('twitter'),
   express = require('express'),
   crypto = require('crypto'),
   bodyParser = require('body-parser'),
+  { printEventPayload } = require('./util'),
   userId = process.env.USER_ID,
   maxTweets = process.env.MAX_TWEETS || 666,
   config = {
@@ -68,6 +69,8 @@ app.get('/webhook/twitter', (req, res) => {
 });
 
 app.post('/webhook/twitter', (req, res) => {
+  printEventPayload(req.body);
+
   if (req.body.for_user_id === userId && req.body.tweet_create_events) {
     const user = req.body.tweet_create_events[0].user;
 
