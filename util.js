@@ -81,4 +81,4 @@ function processMedia(mediaS) {
   });
 }
 
-module.exports = formatEvent;
+module.exports = { formatEvent };
