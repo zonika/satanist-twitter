@@ -69,31 +69,34 @@ app.get('/webhook/twitter', (req, res) => {
   }
 });
 
-app.post('/webhook/twitter', async (req, res) => {
-  const event = formatEvent(req.body);
+app.post('/webhook/twitter', handleWebhook);
 
-  if (!req.body.for_user_id === userId) {
-    console.log(event);
+async function handleWebhook(req, res) {
+  const events = formatEvent(req.body);
+
+  if (!req.body.for_user_id === userId || !events) {
+    console.log(events);
     res.send('yeehaw');
     return;
   }
 
-  if (event.media) {
-    event.media = await Promise.all(event.media.map(downloadThenUpload));
-  }
-  console.log(event);
+  //events.forEach(async (e) => {
+    //if (e.media) {
+      //e.media = await Promise.all(e.media.map(downloadThenUpload));
+    //}
+    //console.log(JSON.stringify(e, null, 2));
+  //});
 
   if (req.body.tweet_create_events) {
     const user = req.body.tweet_create_events[0].user;
 
     if (user.id_str === userId && user.statuses_count > maxTweets) {
       getOldest()
-        .then(deleteOldest)
-        .then((deletedTweet));
+        .then(deleteOldest);
     }
   }
 
   res.send('yeehaw');
-});
+}
 
 app.listen(process.env.PORT);

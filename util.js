@@ -1,39 +1,93 @@
 'use strict';
 
+const formatUser = ({
+  name,
+  handle,
+  screen_name,
+  id,
+  description
+}) => ({
+  name,
+  handle,
+  screen_name,
+  id,
+  description
+});
+function printTweet(tweet) {
+  const { text, user, created_at, entities } = tweet;
+
+  console.log(`${user.name} (@${user.screen_name}) [${created_at}]`);
+  console.log(text);
+}
+
+function printUserEvent(event, type) {
+  const { target, source } = event;
+
+  console.log(`${source.name} (@${source.screen_name}) ${type} ${target.name} (@${target.screen_name})`);
+}
+
 function formatEvent(event) {
+  const events = []
+
   if (event.tweet_create_events) {
-    return event.tweet_create_events.map(parseTweet);
-  } else if (event.favorite_events) {
-    return event.favorite_events
-      .map(({ favorited_status, user }) => ({
-        userEvent: true,
-        type: 'favorite',
-        user,
-        tweet: user.id === process.env.USER_ID ? favorited_status.id_str : parseTweet(favorited_status)
-      }));
-  } else if (event.follow_events) {
-    return event.follow_events.map(({ target, source }) => ({
-      userEvent: true,
-      type: 'follow',
-      source,
-      target
-    }));
-    event.follow_events.forEach((event) => formatUserEvent(event, 'followed'));
-  } else if (event.block_events) {
-    return event.block_events.map(({ target, source }) => ({
-      userEvent: true,
-      type: 'block',
-      source,
-      target
-    }));
-  } else if (event.mute_events) {
-    return event.mute_events.map(({ target, source }) => ({
-      userEvent: true,
-      type: 'mute',
-      source,
-      target
+    events.concat(event.tweet_create_events.map((tweet) => {
+      printTweet(tweet);
+      return parseTweet(tweet);
     }));
   }
+
+  if (event.favorite_events) {
+    events.concat(event.favorite_events
+      .map(({ favorited_status, user }) => {
+        console.log(`${user.name} (@${user.screen_name}) favorited:`);
+        printTweet(favorited_status);
+
+        return {
+          userEvent: true,
+          type: 'favorite',
+          user: formatUser(user),
+          tweet: user.id === process.env.USER_ID ? favorited_status.id_str : parseTweet(favorited_status)
+        };
+      }));
+  }
+
+  if (event.follow_events) {
+    events.concat(event.follow_events.map(({ target, source }) => {
+      printUserEvent({ target, source }, 'followed');
+      return {
+        userEvent: true,
+        type: 'follow',
+        source: formatUser(source),
+        target: formatUser(target)
+      }
+    }));
+  }
+
+  if (event.block_events) {
+    events.concat(event.block_events.map(({ target, source }) => {
+      printUserEvent({ target, source }, 'blocked');
+      return {
+        userEvent: true,
+        type: 'block',
+        source: formatUser(source),
+        target: formatUser(target)
+      }
+    }));
+  }
+
+  if (event.mute_events) {
+    events.concat(event.mute_events.map(({ target, source }) => {
+      printUserEvent({ target, source }, 'muted');
+      return {
+        userEvent: true,
+        type: 'mute',
+        source: formatUser(source),
+        target: formatUser(target)
+      }
+    }));
+  }
+
+  return events;
 }
 
 function parseTweet(tweetObj) {
@@ -42,10 +96,10 @@ function parseTweet(tweetObj) {
 
   const tweet = {
     text,
-    user,
+    user: formatUser(user),
     created_at,
     id_str,
-    media: processMedia(extended_entities.media),
+    media: extended_entities ? processMedia(extended_entities.media) : [],
     urls: processUrls(entities.urls)
   };
 
@@ -70,15 +124,14 @@ function processUrls(urls) {
 }
 
 function processMedia(mediaS) {
-  mediaS.flatMap(({ type, ...media }) => {
+  return mediaS.reduce((acc, { type, ...media }) => {
     if (type === 'photo') {
-      return { type, url: media.media_url_https || media.media_url };
+      acc.push({ type, url: media.media_url_https || media.media_url });
     } else if ((type === 'video' || type === 'animated_gif') && media.video_info) {
-      return { type, url: media.video_info.variants.find((variant) => variant.content_type === 'video/mp4') };
-    } else {
-      return [];
+      acc.push({ type, url: media.video_info.variants.find((variant) => variant.content_type === 'video/mp4') });
     }
-  });
+    return acc;
+  }, []);
 }
 
 module.exports = { formatEvent };

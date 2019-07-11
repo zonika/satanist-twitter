@@ -8,10 +8,11 @@ const Bucket = 'zoes-pics-from-twitter';
 
 function downloadThenUpload({ url, type }) {
   const Key = url.split('/').pop();
+  console.log(url, Key);
   return s3.putObject({
-    body: request(url),
+    Body: request(url),
     Bucket, Key
-  }).then(({ data }) => ({ url: data.location, type }));
+  }).promise().then(({ data }) => ({ url: data.location, type }));
 }
 
 module.exports = { downloadThenUpload };
