@@ -11,11 +11,12 @@
     "url": "github.com/zonika/satanist-twitter"
   },
   "dependencies": {
+    "aws-sdk": "^2.490.0",
     "body-parser": "^1.18.3",
     "crypto": "^1.0.1",
     "dotenv": "^4.0.0",
     "express": "^4.14.0",
-    "http": "0.0.0",
+    "request": "^2.88.0",
     "twitter": "^1.2.5"
   },
   "engines": {

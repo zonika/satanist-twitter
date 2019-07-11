@@ -6,7 +6,8 @@ const twitter = require('twitter'),
   express = require('express'),
   crypto = require('crypto'),
   bodyParser = require('body-parser'),
-  { printEventPayload } = require('./util'),
+  { formatEvent } = require('./util'),
+  { downloadThenUpload } = require('./storage'),
   userId = process.env.USER_ID,
   maxTweets = process.env.MAX_TWEETS || 666,
   config = {
@@ -41,8 +42,8 @@ function getOldest(maxId) {
 }
 
 function deleteOldest(tweet) {
-  console.log('deleting ' + tweet.text);
-  return client.post('statuses/destroy', { id: tweet.id_str });
+  return client.post('statuses/destroy', { id: tweet.id_str })
+    .then(() => tweet);
 }
 
 app.use(bodyParser.json())
@@ -68,14 +69,27 @@ app.get('/webhook/twitter', (req, res) => {
   }
 });
 
-app.post('/webhook/twitter', (req, res) => {
-  printEventPayload(req.body);
+app.post('/webhook/twitter', async (req, res) => {
+  const event = formatEvent(req.body);
 
-  if (req.body.for_user_id === userId && req.body.tweet_create_events) {
+  if (!req.body.for_user_id === userId) {
+    console.log(event);
+    res.send('yeehaw');
+    return;
+  }
+
+  if (event.media) {
+    event.media = await Promise.all(event.media.map(downloadThenUpload));
+  }
+  console.log(event);
+
+  if (req.body.tweet_create_events) {
     const user = req.body.tweet_create_events[0].user;
 
     if (user.id_str === userId && user.statuses_count > maxTweets) {
-      getOldest().then(deleteOldest);
+      getOldest()
+        .then(deleteOldest)
+        .then((deletedTweet));
     }
   }
 

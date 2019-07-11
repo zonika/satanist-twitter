@@ -1,37 +1,85 @@
 'use strict';
 
-function formatTweet(tweet) {
-  const { text, user, created_at, entities } = tweet;
-
-  console.log(`${user.name} (@${user.screen_name}) [${created_at}]`);
-  console.log(text);
-}
-
-function formatFavorite(event) {
-  const { favorited_status, user } = event;
-
-  console.log(`${user.name} (@${user.screen_name}) favorited:`);
-  formatTweet(favorited_status);
-}
-
-function formatUserEvent(event, type) {
-  const { target, source } = event;
-
-  console.log(`${source.name} (@${source.screen_name}) ${type} ${target.name} (@${target.screen_name})`);
-}
-
-function printEventPayload(event) {
+function formatEvent(event) {
   if (event.tweet_create_events) {
-    event.tweet_create_events.forEach(formatTweet);
+    return event.tweet_create_events.map(parseTweet);
   } else if (event.favorite_events) {
-    event.favorite_events.forEach(formatFavorite);
+    return event.favorite_events
+      .map(({ favorited_status, user }) => ({
+        userEvent: true,
+        type: 'favorite',
+        user,
+        tweet: user.id === process.env.USER_ID ? favorited_status.id_str : parseTweet(favorited_status)
+      }));
   } else if (event.follow_events) {
+    return event.follow_events.map(({ target, source }) => ({
+      userEvent: true,
+      type: 'follow',
+      source,
+      target
+    }));
     event.follow_events.forEach((event) => formatUserEvent(event, 'followed'));
   } else if (event.block_events) {
-    event.block_events.forEach((event) => formatUserEvent(event, 'blocked'));
+    return event.block_events.map(({ target, source }) => ({
+      userEvent: true,
+      type: 'block',
+      source,
+      target
+    }));
   } else if (event.mute_events) {
-    event.mute_events.forEach((event) => formatUserEvent(event, 'muted'));
+    return event.mute_events.map(({ target, source }) => ({
+      userEvent: true,
+      type: 'mute',
+      source,
+      target
+    }));
   }
 }
 
-module.exports.printEventPayload = printEventPayload;
+function parseTweet(tweetObj) {
+  const { user, created_at, extended_entities, entities, id_str, truncated } = tweetObj;
+  const text = truncated ? tweetObj.extended_tweet.full_text : tweetObj.text;
+
+  const tweet = {
+    text,
+    user,
+    created_at,
+    id_str,
+    media: processMedia(extended_entities.media),
+    urls: processUrls(entities.urls)
+  };
+
+  if (tweetObj.quoted_status) {
+    tweet.quoteTweet = parseTweet(tweetObj.quoted_status);
+  }
+
+  if (tweetObj.retweeted_status) {
+    tweet.retweet = parseTweet(tweetObj.retweet);
+  }
+
+  return tweet;
+}
+
+function processUrls(urls) {
+  urls.map(({ expanded_url: url, ...urlProps }) => {
+    if (urlProps.unwound) {
+      return { url, title: urlProps.unwound.title, description: urlProps.unwound.description };
+    }
+    return { url };
+  });
+}
+
+function processMedia(mediaS) {
+  mediaS.flatMap(({ type, ...media }) => {
+    if (type === 'photo') {
+      return { type, url: media.media_url_https || media.media_url };
+    } else if ((type === 'video' || type === 'animated_gif') && media.video_info) {
+      return { type, url: media.video_info.variants.find((variant) => variant.content_type === 'video/mp4') };
+    } else {
+      return [];
+    }
+  });
+}
+
+export default formatEvent;
+export { parseTweet };
