@@ -14,4 +14,4 @@ function downloadThenUpload({ url, type }) {
   }).(({ data }) => ({ url: data.location, type }));
 }
 
-export { downloadThenUpload };
+module.exports = { downloadThenUpload };
