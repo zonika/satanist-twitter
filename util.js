@@ -81,5 +81,4 @@ function processMedia(mediaS) {
   });
 }
 
-export default formatEvent;
-export { parseTweet };
+module.exports = formatEvent;
